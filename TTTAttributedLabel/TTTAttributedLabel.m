@@ -1119,31 +1119,8 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 
     self.attributedText = text;
     self.activeLink = nil;
-
     self.linkModels = [NSArray array];
-    if (text && self.attributedText && self.enabledTextCheckingTypes) {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < 50000
-        __unsafe_unretained __typeof(self)weakSelf = self;
-#else
-        __weak __typeof(self)weakSelf = self;
-#endif
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            __strong __typeof(weakSelf)strongSelf = weakSelf;
-
-            NSDataDetector *dataDetector = strongSelf.dataDetector;
-            if (dataDetector && [dataDetector respondsToSelector:@selector(matchesInString:options:range:)]) {
-                NSArray *results = [dataDetector matchesInString:[(NSAttributedString *)text string] options:0 range:NSMakeRange(0, [(NSAttributedString *)text length])];
-                if ([results count] > 0) {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        if ([[strongSelf.attributedText string] isEqualToString:[(NSAttributedString *)text string]]) {
-                            [strongSelf addLinksWithTextCheckingResults:results attributes:strongSelf.linkAttributes];
-                        }
-                    });
-                }
-            }
-        });
-    }
-
+    
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
     if (&NSLinkAttributeName) {
         [self.attributedText enumerateAttribute:NSLinkAttributeName inRange:NSMakeRange(0, self.attributedText.length) options:0 usingBlock:^(id value, __unused NSRange range, __unused BOOL *stop) {
